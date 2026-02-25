@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from 'expresss';
 import { authenticateUser } from '../middleware/auth.js';
 import { recordUserLogin } from '../services/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
