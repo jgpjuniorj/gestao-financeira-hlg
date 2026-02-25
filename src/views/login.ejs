@@ -1,0 +1,23 @@
+<section class="section-block" style="max-width:420px;margin:0 auto;">
+  <h2>Acessar painel</h2>
+  <p style="color:var(--muted);margin:4px 0 18px;font-size:14px;">Informe suas credenciais para continuar.</p>
+
+  <% if (error) { %>
+    <div class="alerta-msg"><%= error %></div>
+  <% } %>
+
+  <form action="/login" method="post" class="panel" style="background:transparent;border:none;box-shadow:none;padding:0;gap:16px;">
+    <div>
+      <label for="username">Usuário</label>
+      <input id="username" name="username" type="text" autocomplete="username" required />
+    </div>
+    <div>
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+    </div>
+    <% if (next) { %>
+      <input type="hidden" name="next" value="<%= next %>" />
+    <% } %>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+</section>

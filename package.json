@@ -1,0 +1,20 @@
+{
+  "name": "gestao-financeira-node-no-planilha",
+  "version": "1.0.0",
+  "description": "Gestão financeira sem planilha — CRUD de seções/categorias/lançamentos, visão Consolidada e Mensal.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.17.3",
+    "mysql2": "^3.11.3",
+    "uuid": "^9.0.1"
+  }
+}

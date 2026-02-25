@@ -1,0 +1,21 @@
+{{- $namespace := default .Release.Namespace .Values.namespace.name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gestao-financeira.fullname" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app: {{ include "gestao-financeira.fullname" . }}
+    {{- include "gestao-financeira.labels" . | nindent 4 }}
+    app.kubernetes.io/component: application
+spec:
+  type: {{ .Values.app.service.type }}
+  selector:
+    app: {{ include "gestao-financeira.fullname" . }}
+    {{- include "gestao-financeira.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: application
+  ports:
+    - name: http
+      port: {{ .Values.app.service.port }}
+      targetPort: {{ .Values.app.service.targetPort }}
+      protocol: TCP

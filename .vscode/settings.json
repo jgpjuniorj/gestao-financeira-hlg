@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "**/deploy/helm/gestao-financeira/templates/*.yaml": "helm-template",
+    "**/deploy/helm/gestao-financeira/templates/*.tpl": "helm-template",
+    "**/deploy/helm/gestao-financeira/templates/*.txt": "helm-template"
+  }
+}

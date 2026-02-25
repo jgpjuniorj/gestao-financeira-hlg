@@ -1,0 +1,9 @@
+1. Get the application URL by running these commands:
+{{- if and .Values.ingress.enabled .Values.ingress.hosts }}
+  {{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+  {{- end }}
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ default .Release.Namespace .Values.namespace.name }} -l "app.kubernetes.io/name={{ include "gestao-financeira.name" . }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl port-forward $POD_NAME --namespace {{ default .Release.Namespace .Values.namespace.name }} {{ .Values.app.service.port }}:{{ .Values.app.service.targetPort }}
+{{- end }}

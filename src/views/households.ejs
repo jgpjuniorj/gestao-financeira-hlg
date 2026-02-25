@@ -1,0 +1,88 @@
+<section class="section-block">
+  <div class="section-header">
+    <div>
+      <h2>Ambientes</h2>
+      <p>Crie, renomeie ou altere o ambiente ativo para administrar finanças de cada grupo.</p>
+    </div>
+  </div>
+
+  <% if (feedback) { %>
+    <% if (feedback.type === 'success') { %>
+      <div class="info-msg"><%= feedback.text %></div>
+    <% } else { %>
+      <div class="alerta-msg"><%= feedback.text %></div>
+    <% } %>
+  <% } %>
+
+  <div class="panel-grid" style="margin-top:12px;">
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <h3>Novo ambiente</h3>
+          <p>Separe dados por família, empresa ou equipe.</p>
+        </div>
+      </div>
+      <form action="/admin/households" method="post" class="stack-form">
+        <div>
+          <label for="household-name">Nome</label>
+          <input id="household-name" name="name" type="text" required autocomplete="off" />
+        </div>
+        <div>
+          <label for="household-slug">Slug (opcional)</label>
+          <input id="household-slug" name="slug" type="text" placeholder="ex: familia-silva" autocomplete="off" />
+        </div>
+        <button type="submit" class="btn">Criar ambiente</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top:24px;">
+    <div>
+      <h3>Ambientes cadastrados</h3>
+      <p>Atualize nome, defina slug ou altere o ambiente ativo.</p>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Slug</th>
+          <th>Criado em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!households.length) { %>
+          <tr>
+            <td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Nenhum ambiente cadastrado.</td>
+          </tr>
+        <% } %>
+        <% households.forEach(household => { %>
+          <tr class="<%= activeHouseholdId === household.id ? 'row-active' : '' %>">
+            <td>
+              <form action="/admin/households/<%= household.id %>/update" method="post" class="inline-form">
+                <input type="text" name="name" value="<%= household.name %>" required />
+                <input type="text" name="slug" value="<%= household.slug %>" placeholder="Slug" />
+                <button type="submit" class="btn-secondary">Salvar</button>
+              </form>
+            </td>
+            <td><code><%= household.slug %></code></td>
+            <td><%= household.createdAt ? new Date(household.createdAt).toLocaleString('pt-BR') : '-' %></td>
+            <td>
+              <div class="table-actions">
+                <form action="/admin/households/<%= household.id %>/activate" method="post">
+                  <button type="submit" class="btn <%= activeHouseholdId === household.id ? 'btn-disabled' : '' %>" <%= activeHouseholdId === household.id ? 'disabled' : '' %>>Ativar</button>
+                </form>
+                <form action="/admin/households/<%= household.id %>/delete" method="post" onsubmit="return confirm('Remover ambiente <%= household.name %>? Esta ação só é permitida se não houver dados.');">
+                  <button type="submit" class="btn btn-danger">Remover</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>

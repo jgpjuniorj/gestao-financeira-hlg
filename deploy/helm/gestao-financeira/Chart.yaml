@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gestao-financeira
+description: Helm chart for deploying the Gestão Financeira application and MariaDB backend
+version: 0.1.0
+appVersion: 1.0.0
+type: application

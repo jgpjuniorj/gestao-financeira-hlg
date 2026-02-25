@@ -1,0 +1,19 @@
+{{- if .Values.database.enabled -}}
+{{- $namespace := default .Release.Namespace .Values.namespace.name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gestao-financeira.dbFullname" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    {{- include "gestao-financeira.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  ports:
+    - name: mysql
+      port: {{ .Values.database.service.port }}
+      targetPort: {{ .Values.database.service.port }}
+  selector:
+    {{- include "gestao-financeira.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+{{- end -}}

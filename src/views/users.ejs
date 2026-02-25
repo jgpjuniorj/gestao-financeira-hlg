@@ -1,0 +1,114 @@
+<section class="section-block">
+  <div class="section-header">
+    <div>
+      <h2>Usuários</h2>
+      <p>Gerencie contas de acesso ao painel.</p>
+    </div>
+  </div>
+
+  <% if (feedback) { %>
+    <% if (feedback.type === 'success') { %>
+      <div class="info-msg"><%= feedback.text %></div>
+    <% } else { %>
+      <div class="alerta-msg"><%= feedback.text %></div>
+    <% } %>
+  <% } %>
+
+  <div class="panel-grid" style="margin-top:12px;">
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <h3>Novo usuário</h3>
+          <p>Crie contas adicionais para o time.</p>
+        </div>
+      </div>
+      <form action="/users" method="post" class="stack-form">
+        <div>
+          <label for="username">Usuário</label>
+          <input id="username" name="username" type="text" autocomplete="off" required />
+        </div>
+        <div>
+          <label for="password">Senha</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required />
+        </div>
+        <div>
+          <label for="household">Ambiente</label>
+          <select id="household" name="householdId" required>
+            <option value="" disabled selected>Selecione...</option>
+            <% households.forEach(household => { %>
+              <option value="<%= household.id %>"><%= household.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-inline">
+          <input id="is-admin" name="isAdmin" type="checkbox" value="true" />
+          <label for="is-admin">Conceder acesso de administrador</label>
+        </div>
+        <button type="submit" class="btn">Cadastrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top:24px;">
+    <div>
+      <h3>Contas cadastradas</h3>
+      <p>Atualize permissões, mova entre ambientes ou redefina senhas.</p>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Usuário</th>
+          <th>Criado em</th>
+          <th>Último acesso</th>
+          <th>Ambiente</th>
+          <th>Admin</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!users.length) { %>
+          <tr>
+            <td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Nenhum usuário cadastrado.</td>
+          </tr>
+        <% } %>
+        <% users.forEach(user => { %>
+          <tr>
+            <td><strong><%= user.username %></strong></td>
+            <td><%= user.createdAt ? new Date(user.createdAt).toLocaleString('pt-BR') : '-' %></td>
+            <td><%= user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('pt-BR') : 'Nunca' %></td>
+            <td>
+              <form action="/users/<%= user.id %>/household" method="post" class="inline-form">
+                <select name="householdId">
+                  <% households.forEach(household => { %>
+                    <option value="<%= household.id %>" <%= household.id === user.householdId ? 'selected' : '' %>><%= household.name %></option>
+                  <% }) %>
+                </select>
+                <button type="submit" class="btn-secondary">Mover</button>
+              </form>
+            </td>
+            <td>
+              <form action="/users/<%= user.id %>/admin" method="post">
+                <input type="hidden" name="isAdmin" value="<%= user.isAdmin ? 'false' : 'true' %>" />
+                <button type="submit" class="btn-secondary"><%= user.isAdmin ? 'Remover' : 'Promover' %></button>
+              </form>
+            </td>
+            <td>
+              <div class="table-actions">
+                <form action="/users/<%= user.id %>/password" method="post" style="display:flex;gap:8px;align-items:center;">
+                  <input type="password" name="password" placeholder="Nova senha" required autocomplete="new-password" />
+                  <button type="submit" class="btn-secondary">Atualizar senha</button>
+                </form>
+                <form action="/users/<%= user.id %>/delete" method="post" onsubmit="return confirm('Remover usuário <%= user.username %>?');">
+                  <button type="submit" class="btn btn-danger">Remover</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>

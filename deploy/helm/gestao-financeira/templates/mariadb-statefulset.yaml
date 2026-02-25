@@ -1,0 +1,69 @@
+{{- if .Values.database.enabled -}}
+{{- $namespace := default .Release.Namespace .Values.namespace.name -}}
+{{- $secretName := coalesce .Values.database.credentials.existingSecret (include "gestao-financeira.dbFullname" .) -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "gestao-financeira.dbFullname" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    {{- include "gestao-financeira.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  serviceName: {{ include "gestao-financeira.dbFullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "gestao-financeira.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "gestao-financeira.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+        - name: mariadb
+          image: {{ printf "%s:%s" .Values.database.image.repository .Values.database.image.tag | quote }}
+          imagePullPolicy: {{ .Values.database.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.database.service.port }}
+              name: mysql
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: MARIADB_ROOT_PASSWORD
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: MARIADB_DATABASE
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: MARIADB_USER
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: MARIADB_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          resources:
+            {{- toYaml .Values.database.resources | nindent 12 }}
+  {{- if .Values.database.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{- toYaml .Values.database.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.database.persistence.size }}
+  {{- end }}
+{{- end -}}

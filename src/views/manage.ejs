@@ -1,0 +1,114 @@
+
+<section class="section-block">
+  <div class="section-header">
+    <div>
+      <h2>Central de Dados</h2>
+      <p>Cadastre, edite e remova informações em tempo real.</p>
+    </div>
+    <div class="section-counts">
+      <span><strong><%= sections.length %></strong> seções</span>
+      <span><strong><%= categories.length %></strong> categorias</span>
+      <span><strong><%= entries.length %></strong> lançamentos</span>
+    </div>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-title">
+        <h3>Nova Seção</h3>
+        <p>Organize categorias por grupos personalizados.</p>
+      </div>
+      <form action="/section" method="post">
+        <div>
+          <label for="nova-secao">Nome da seção</label>
+          <input id="nova-secao" type="text" name="name" placeholder="Ex.: Receitas, Moradia" required />
+        </div>
+        <div>
+          <button type="submit" class="btn">Adicionar Seção</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <h3>Nova Categoria</h3>
+        <p>Relacione despesas ou receitas às suas seções.</p>
+      </div>
+      <form action="/category" method="post">
+        <div>
+          <label for="nova-categoria">Nome da categoria</label>
+          <input id="nova-categoria" type="text" name="name" placeholder="Ex.: Energia, Internet" required />
+        </div>
+        <div>
+          <label for="categoria-secao">Seção</label>
+          <select id="categoria-secao" name="sectionId" required>
+            <option value="">Selecione...</option>
+            <% sections.forEach(s => { %>
+              <option value="<%= s.id %>"><%= s.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <button type="submit" class="btn">Adicionar Categoria</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="info-msg">
+    Para registrar ou editar lançamentos utilize a página dedicada em <strong>Lançamentos</strong> no menu superior.
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Editar Seções</h3>
+  <% if (sections.length === 0) { %>
+    <div class="empty-state">Cadastre suas seções para começar a organizar as categorias.</div>
+  <% } else { %>
+    <div class="editor-list">
+      <% sections.forEach(s => { %>
+        <form action="/section/<%= s.id %>/update" method="post" class="editor-item">
+          <div>
+            <label>Nome</label>
+            <input type="text" name="name" value="<%= s.name %>" required />
+          </div>
+          <div class="table-actions">
+            <button type="submit" class="btn">Salvar</button>
+            <button type="submit" class="btn btn-danger" formaction="/section/<%= s.id %>/delete" formmethod="post">Excluir</button>
+          </div>
+        </form>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <h3>Editar Categorias</h3>
+  <% if (categories.length === 0) { %>
+    <div class="empty-state">Crie categorias para acompanhar suas receitas e despesas.</div>
+  <% } else { %>
+    <div class="editor-list">
+      <% categories.forEach(c => { %>
+        <form action="/category/<%= c.id %>/update" method="post" class="editor-item">
+          <div>
+            <label>Nome</label>
+            <input type="text" name="name" value="<%= c.name %>" required />
+          </div>
+          <div>
+            <label>Seção</label>
+            <select name="sectionId" required>
+              <% sections.forEach(s => { %>
+                <option value="<%= s.id %>" <%= c.sectionId===s.id?'selected':'' %>><%= s.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="table-actions">
+            <button type="submit" class="btn">Salvar</button>
+            <button type="submit" class="btn btn-danger" formaction="/category/<%= c.id %>/delete" formmethod="post">Excluir</button>
+          </div>
+        </form>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <h3>Editar Lançamentos</h3>
+  <div class="empty-state">Lançamentos podem ser gerenciados na página dedicada.</div>
+</section>

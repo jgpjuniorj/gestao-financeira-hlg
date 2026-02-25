@@ -1,0 +1,116 @@
+{{- $namespace := default .Release.Namespace .Values.namespace.name -}}
+{{- $fullName := include "gestao-financeira.fullname" . -}}
+{{- $labels := include "gestao-financeira.labels" . -}}
+{{- $selectorLabels := include "gestao-financeira.selectorLabels" . -}}
+{{- $dbSecretName := "" -}}
+{{- if .Values.database.enabled -}}
+  {{- $dbSecretName = coalesce .Values.app.database.secretName .Values.database.credentials.existingSecret (include "gestao-financeira.dbFullname" .) -}}
+{{- else -}}
+  {{- $dbSecretName = .Values.app.database.secretName -}}
+{{- end -}}
+{{- $dbHost := default (include "gestao-financeira.dbFullname" .) .Values.app.database.host -}}
+{{- $dbPort := default (printf "%d" .Values.database.service.port) .Values.app.database.port -}}
+{{- if and (not .Values.database.enabled) (not $dbSecretName) -}}
+  {{- fail "app.database.secretName must be set when database.enabled is false" -}}
+{{- end -}}
+{{- if and (not .Values.database.enabled) (not .Values.app.database.host) -}}
+  {{- fail "app.database.host must be set when database.enabled is false" -}}
+{{- end -}}
+{{- if and (not .Values.database.enabled) (not .Values.app.database.port) -}}
+  {{- fail "app.database.port must be set when database.enabled is false" -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app: {{ $fullName }}
+    {{- $labels | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+      app.kubernetes.io/component: application
+  template:
+    metadata:
+      labels:
+        app: {{ $fullName }}
+        {{- $selectorLabels | nindent 8 }}
+        app.kubernetes.io/component: application
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "gestao-financeira.name" . }}
+          image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.service.targetPort }}
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.app.env.NODE_ENV | quote }}
+            - name: SESSION_COOKIE_SECURE
+              value: {{ .Values.app.env.SESSION_COOKIE_SECURE | quote }}
+            - name: DB_HOST
+              value: {{ $dbHost | quote }}
+            - name: DB_PORT
+              value: {{ $dbPort | quote }}
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $dbSecretName | quote }}
+                  key: MARIADB_DATABASE
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $dbSecretName | quote }}
+                  key: MARIADB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $dbSecretName | quote }}
+                  key: MARIADB_PASSWORD
+          {{- range $index, $item := .Values.extraEnv }}
+            - name: {{ $item.name }}
+              value: {{ $item.value | quote }}
+          {{- end }}
+          {{- if and .Values.app.readinessProbe.enabled .Values.app.readinessProbe.path }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.readinessProbe.path }}
+              port: {{ .Values.app.readinessProbe.port }}
+            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds }}
+          {{- end }}
+          {{- if and .Values.app.livenessProbe.enabled .Values.app.livenessProbe.path }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.livenessProbe.path }}
+              port: {{ .Values.app.livenessProbe.port }}
+            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds }}
+          {{- end }}
+          {{- with .Values.app.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.app.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

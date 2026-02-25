@@ -1,0 +1,9 @@
+# Patterns to ignore when packaging Helm charts.
+# This supports shell glob matching, relative path matching, and
+# negation (prefixed with !). Only one pattern per line.
+
+.git/
+.hg/
+.svn/
+CVS/
+.gitignore

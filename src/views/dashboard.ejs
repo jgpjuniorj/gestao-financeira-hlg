@@ -1,0 +1,121 @@
+
+<section class="section-block">
+  <div class="section-header">
+    <div>
+      <h2>Painel Financeiro</h2>
+      <p>Visão <%= period ? ('mensal — ' + period) : 'consolidada de todos os períodos' %></p>
+    </div>
+    <form method="get" action="/dashboard" class="filtro">
+      <label for="period">Período</label>
+      <select id="period" name="period" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <% data.meses.forEach(m => { %>
+          <option value="<%= m %>" <%= period===m?'selected':'' %>><%= m %></option>
+        <% }) %>
+      </select>
+    </form>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <span>Renda Total</span>
+      <strong>R$ <%= data.resumo.rendaTotal.toLocaleString('pt-BR') %></strong>
+    </div>
+    <div class="metric-card <%= data.resumo.overspending ? 'alerta' : '' %>">
+      <span>Despesas Totais</span>
+      <strong>R$ <%= data.resumo.despesasTotal.toLocaleString('pt-BR') %></strong>
+    </div>
+    <div class="metric-card <%= data.resumo.overspending ? 'alerta' : (data.resumo.saldoPositivo ? 'positivo' : '') %>">
+      <span>Resultado</span>
+      <strong>R$ <%= data.resumo.resultado.toLocaleString('pt-BR') %></strong>
+    </div>
+    <div class="metric-card">
+      <span>Economia</span>
+      <strong><%= data.resumo.economiaPercent.toLocaleString('pt-BR') %>%</strong>
+    </div>
+    <div class="metric-card <%= data.resumo.percentSpent > 100 ? 'alerta' : '' %>">
+      <span>Percentual do Salário Gasto</span>
+      <strong><%= data.resumo.percentSpent.toLocaleString('pt-BR') %>%</strong>
+    </div>
+    <div class="metric-card <%= data.resumo.hasSavings ? 'poupanca' : '' %>">
+      <span>Poupança / Reservas</span>
+      <strong>R$ <%= data.resumo.poupancaTotal.toLocaleString('pt-BR') %></strong>
+    </div>
+  </div>
+
+  <% if (data.resumo.overspending) { %>
+    <div class="alerta-msg">
+      <strong>Atenção:</strong> as despesas ultrapassaram a renda neste período. Reveja os lançamentos críticos abaixo.
+    </div>
+  <% } %>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-title">
+        <h3>Comparativo Renda x Despesas</h3>
+        <p>Barra em vermelho indica estouro do orçamento.</p>
+      </div>
+      <canvas id="graficoComparativo" height="140"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">
+        <h3>Top Categorias</h3>
+        <p>As 10 categorias com maior saída neste período.</p>
+      </div>
+      <canvas id="graficoCategorias" height="140"></canvas>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th>Seção</th>
+          <th>Realizado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (data.categorias.length === 0) { %>
+          <tr>
+            <td colspan="3">Nenhum lançamento encontrado para este recorte.</td>
+          </tr>
+        <% } %>
+        <% data.categorias.forEach(c => { %>
+          <tr>
+            <td><%= c.categoria %></td>
+            <td><%= c.secao %></td>
+            <td>R$ <%= c.totalAtual.toLocaleString('pt-BR') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Seção</th>
+          <th>Realizado</th>
+          <th>Participação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% data.sections.forEach(s => { %>
+          <tr>
+            <td><%= s.secao %></td>
+            <td>R$ <%= s.totalAtual.toLocaleString('pt-BR') %></td>
+            <td><%= s.participacao.toLocaleString('pt-BR') %>%</td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script type="application/json" id="dashboard-data"><%- JSON.stringify({
+  resumo: data.resumo,
+  categorias: data.categorias.slice(0, 10)
+}) %></script>
+<script src="/js/dashboard.js" defer></script>

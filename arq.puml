@@ -1,0 +1,67 @@
+@startuml
+skinparam backgroundColor #101826
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BorderColor #3B82F6
+  FontColor #E2E8F0
+  FontSize 12
+  RoundCorner 12
+}
+skinparam actorStyle awesome
+skinparam defaultTextAlignment center
+skinparam ArrowColor #F97316
+skinparam ArrowThickness 2
+
+actor Users as users
+cloud "Cloudflare Tunnel\n+ Ingress" as tunnel #2C3C5C
+
+users --> tunnel
+
+node "Kubernetes Cluster\n(gda-shipping)" as cluster #1C2840 {
+  frame "Control Plane" as control {
+    component "API Server" as api
+    component "Scheduler" as scheduler
+    database  "etcd" as etcd
+  }
+
+  frame "Worker Nodes" as workers {
+    component "General Pool\n(node group)" as workers_pool
+    component "Spot Pool\n(node group)" as spot_pool
+  }
+
+  rectangle "Namespace gestao-financeira" as ns {
+    component "Service\nClusterIP gestao-financeira" as svc #14324A
+
+    frame "Application Stack" as app {
+      component "Deployment\napp gestao-financeira" as app_deploy
+      component "ReplicaSet\napp-rs" as app_rs
+      component "Pod\napp-*" as app_pod
+    }
+
+    frame "Database Stack" as db {
+      component "Service\nMariaDB" as db_svc
+      component "StatefulSet\nmariadb" as db_sts
+      component "ReplicaSet\nmariadb-rs" as db_rs
+      component "Pod\nmariadb-0" as db_pod
+      component "Secret\nmariadb-credentials" as db_secret
+      component "PVC\nmariadb-pvc" as pvc #311C52
+    }
+  }
+}
+
+tunnel --> svc
+svc --> app_deploy
+app_deploy --> app_rs
+app_rs --> app_pod
+app_pod --> db_svc
+db_svc --> db_sts
+db_sts --> db_rs
+db_rs --> db_pod
+db_pod --> pvc
+db_sts --> db_secret
+
+api --> workers_pool
+api --> spot_pool
+app_pod --> workers_pool
+db_pod --> workers_pool
+@enduml

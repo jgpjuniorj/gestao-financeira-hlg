@@ -1,0 +1,131 @@
+
+<section class="section-block">
+  <div class="section-header">
+    <div>
+      <h2>Lançamentos</h2>
+      <p>Cadastre, revise e mantenha suas entradas e saídas financeiras.</p>
+      <div class="section-counts">
+        <span><strong><%= entries.length %></strong> lançamentos</span>
+        <span><strong>R$ <%= Number(totalValue).toLocaleString('pt-BR') %></strong> no período selecionado</span>
+      </div>
+    </div>
+    <form method="get" action="/entries" class="filtro">
+      <label for="entries-period">Período</label>
+      <select id="entries-period" name="period">
+        <option value="">Todos</option>
+        <% (periodOptions || []).forEach(opt => { %>
+          <option value="<%= opt.value %>" <%= selectedPeriod===opt.value?'selected':'' %>><%= opt.label %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+    </form>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-title">
+        <h3>Novo Lançamento</h3>
+        <p>Informe a categoria, período e valor para registrar.</p>
+      </div>
+      <% if (categories.length === 0) { %>
+        <div class="empty-state">Cadastre ao menos uma categoria para adicionar lançamentos.</div>
+      <% } else { %>
+        <form action="/entry" method="post">
+          <div>
+            <label for="entry-categoria">Categoria</label>
+            <select id="entry-categoria" name="categoryId" required>
+              <option value="">Selecione...</option>
+              <% categories.forEach(c => { const sec = sections.find(s => s.id===c.sectionId); %>
+                <option value="<%= c.id %>"><%= c.name %> — <%= sec ? sec.name : 'Sem seção' %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-inline">
+            <div>
+              <label for="entry-periodo">Período</label>
+              <input id="entry-periodo" type="month" name="period" value="<%= defaultPeriod %>" />
+            </div>
+            <div>
+              <label for="entry-valor">Valor</label>
+              <input id="entry-valor" type="number" step="0.01" name="actual" placeholder="0,00" required />
+            </div>
+          </div>
+          <div>
+            <button type="submit" class="btn">Registrar Lançamento</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h3>Histórico por mês</h3>
+  <% if (!groupedEntries || groupedEntries.length === 0) { %>
+    <div class="empty-state">Nenhum lançamento encontrado para este recorte.</div>
+  <% } else { %>
+    <div class="entries-groups">
+      <% for (let i = 0; i < groupedEntries.length; i++) { const group = groupedEntries[i]; %>
+        <details class="entries-month" <%= selectedPeriod ? (group.period === selectedPeriod ? 'open' : '') : (i === 0 ? 'open' : '') %>>
+          <summary>
+            <div class="month-info">
+              <h4><%= group.label %></h4>
+              <span>R$ <%= Number(group.total).toLocaleString('pt-BR') %></span>
+            </div>
+            <span class="badge"><%= group.entries.length %> lançamentos</span>
+          </summary>
+          <div class="entries-month-content">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Período</th>
+                    <th>Categoria</th>
+                    <th>Seção</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% group.entries.forEach(e => { const c = categories.find(x=>x.id===e.categoryId); const s = c ? sections.find(x=>x.id===c.sectionId) : null; %>
+                    <tr>
+                      <td><%= e.period || 'Sem período' %></td>
+                      <td><%= c ? c.name : '-' %></td>
+                      <td><%= s ? s.name : '-' %></td>
+                      <td>R$ <%= Number(e.actual).toLocaleString('pt-BR') %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="editor-list">
+              <% group.entries.forEach(e => { %>
+                <form action="/entry/<%= e.id %>/update" method="post" class="editor-item">
+                  <div>
+                    <label>Categoria</label>
+                    <select name="categoryId" required>
+                      <% categories.forEach(c => { const sec = sections.find(s => s.id===c.sectionId); %>
+                        <option value="<%= c.id %>" <%= e.categoryId===c.id?'selected':'' %>><%= c.name %> — <%= sec ? sec.name : 'Sem seção' %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Período</label>
+                    <input type="month" name="period" value="<%= e.period %>" />
+                  </div>
+                  <div>
+                    <label>Valor</label>
+                    <input type="number" step="0.01" name="actual" value="<%= e.actual %>" required />
+                  </div>
+                  <div class="table-actions">
+                    <button type="submit" class="btn">Salvar</button>
+                    <button type="submit" class="btn btn-danger" formaction="/entry/<%= e.id %>/delete" formmethod="post">Excluir</button>
+                  </div>
+                </form>
+              <% }) %>
+            </div>
+          </div>
+        </details>
+      <% } %>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,88 @@
+namespace:
+  create: true
+  name: gestao-financeira-hlg
+
+image:
+  repository: gestao-financeira-hlg
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+podAnnotations: {}
+
+app:
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  database:
+    host: ""
+    port: ""
+    secretName: ""
+  readinessProbe:
+    enabled: true
+    path: /
+    port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  livenessProbe:
+    enabled: true
+    path: /
+    port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  env:
+    NODE_ENV: production
+    SESSION_COOKIE_SECURE: "false"
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: finan-hlg.jgpjunior.online
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 80
+  tls: []
+
+database:
+  enabled: true
+  nameOverride: db
+  image:
+    repository: mariadb
+    tag: "11.4"
+    pullPolicy: IfNotPresent
+  service:
+    port: 3306
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  credentials:
+    existingSecret: ""
+    rootPassword: superStrongRootPassHLG123
+    database: gestao_financeira_hlg
+    username: gestao_hlg
+    password: gestaoHlgPass123
+
+extraEnv: []
+
+controller:
+  publishService:
+    enabled: true
+  service:
+    type: LoadBalancer
