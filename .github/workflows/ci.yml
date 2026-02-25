@@ -26,13 +26,14 @@ jobs:
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
-
+        
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/jgpjuniorj/gestao-financeira-hlg:1
             ghcr.io/jgpjuniorj/gestao-financeira-hlg:${{ github.sha }}
+            ghcr.io/jgpjuniorj/gestao-financeira-hlg:1
             ghcr.io/jgpjuniorj/gestao-financeira-hlg:main
+            ghcr.io/jgpjuniorj/gestao-financeira-hlg:latest
